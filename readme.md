@@ -2,7 +2,7 @@
 
 ## Getting Running
 Run `docker compose up`
-Open ` http://localhost:3000`
+Open `http://localhost:3000`
 ## Notes
 
 
