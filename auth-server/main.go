@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/LumberJaxolotl/babys-first-auth-service/handlers"
+	"github.com/LumberJaxolotl/babys-first-auth-service/controllers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -28,19 +28,19 @@ func main() {
 
 	r.Route("/auth", func(r chi.Router) {
 		// 1. Public: Register a new user
-		r.Post("/register", handlers.RegisterHandler)
-
-		// 2. Public: Exchange credentials for tokens
-		r.Post("/login", handlers.LoginHandler)
+		r.Post("/register", controllers.RegisterController)
 
 		// 3. Public: Use Refresh Token to get a new Access Token
-		r.Post("/refresh", handlers.RefreshTokenHandler)
+		r.Post("/refresh", controllers.RefreshTokenController)
+		
+		// 2. Public: Exchange credentials for tokens
+		r.Post("/login", controllers.LoginController)
 
 		// 4. Public/Private: Invalidate the session
-		r.Post("/logout", handlers.LogoutHandler)
+		r.Post("/logout", controllers.LogoutController)
 
 		// 5. Protected: Get current user info (requires Auth middleware)
-		r.Get("/me", handlers.GetMeHandler)
+		r.Get("/me", controllers.GetMeController)
 
 	})
 
