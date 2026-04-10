@@ -44,6 +44,6 @@ func main() {
 
 	})
 
-	fmt.Println("Auth server running on port 80")
-	http.ListenAndServe(":80", r)
+	fmt.Println("Auth server running on port 443")
+	http.ListenAndServe(":443", r)
 }
