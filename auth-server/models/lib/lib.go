@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/LumberJaxolotl/babys-first-auth-service/models/fakedbhelpers"
-	"github.com/LumberJaxolotl/babys-first-auth-service/models/lib"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 )
@@ -34,7 +34,7 @@ func GetUserAccessToken(userId string) string {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tokenValue, err := token.SignedString(lib.JWT_SECRET)
+	tokenValue, err := token.SignedString(JWT_SECRET)
 	if err != nil {
 		log.Fatal("Error Signing Access Token")
 	}
@@ -55,7 +55,7 @@ func GetUserRefreshToken(userId string) (*jwt.Token, string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	fakedbhelpers.StoreRefreshToken(token)
 
-	tokenValue, err := token.SignedString(lib.JWT_SECRET)
+	tokenValue, err := token.SignedString(JWT_SECRET)
 
 	if err != nil {
 		log.Fatal("Error Signing Access Token")
