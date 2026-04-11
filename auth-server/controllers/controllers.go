@@ -3,17 +3,19 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/LumberJaxolotl/babys-first-auth-service/models/fakedbhelpers"
 	"github.com/LumberJaxolotl/babys-first-auth-service/models/lib"
 )
 
 func RegisterController(w http.ResponseWriter, r *http.Request) {
 
 
-	tokenValue := lib.GetUserAccessToken("0")
+	accessTokenValue := lib.GetUserAccessToken("0")
+	
 
 	cookie1 := &http.Cookie{
         Name:     "access_token",
-        Value:    tokenValue,
+        Value:    accessTokenValue,
         Path:     "/",             // For whole-site coverage
         HttpOnly: true,            // Prevents JavaScript access (XSS protection)
         Secure:   true,            // Ensures cookie is sent over HTTPS only
@@ -24,12 +26,14 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 
 	// END ACCESS TOKEN COOKIE 
 
-
+	// TODO store refresh token in db
+	refreshToken, refreshTokenValue, _ := lib.GetUserRefreshToken("0")
+	fakedbhelpers.StoreRefreshToken(refreshToken)
 
 	cookie2 := &http.Cookie{
-        Name:     "access_token",
-        Value:    tokenValue,
-        Path:     "/auth/refresh", // For whole-site coverage
+        Name:     "refresh_token",
+        Value:    refreshTokenValue,
+        Path:     "/", // For whole-site coverage
         HttpOnly: true,            // Prevents JavaScript access (XSS protection)
         Secure:   true,            // Ensures cookie is sent over HTTPS only
         SameSite: http.SameSiteLaxMode, 
