@@ -36,5 +36,20 @@ func init() {
 
 // TODO build this out 
 func StoreRefreshToken() {
-	db.MustExec(`SELECT * FROM User`)
+	db.MustExec(`INSERT VALUES FROM User`)
 }
+
+func ValidateRefreshToken(tokenStr string) {
+	// TODO validate this is the right method + sql code
+	db.Select(`
+		SELECT user_id, token_hash 
+		FROM User
+		WHERE 
+			user_id = 
+			AND
+			token_hash = 
+	`)
+}
+
+
+
