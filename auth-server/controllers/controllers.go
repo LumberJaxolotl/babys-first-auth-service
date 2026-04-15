@@ -9,10 +9,35 @@ import (
 
 func RegisterController(w http.ResponseWriter, r *http.Request) {
 
-
-	accessTokenValue := lib.GetUserAccessToken("0")
 	
+	
+	// TODO fetch user id from verification token claims
+	_, verificationTokenValue, _ := lib.GetUserVerificationToken("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11")
+	
+	cookie1 := &http.Cookie{
+        Name:     "verification_token",
+        Value:    verificationTokenValue,
+        Path:     "/",             // For whole-site coverage
+        HttpOnly: true,            // Prevents JavaScript access (XSS protection)
+        Secure:   true,            // Ensures cookie is sent over HTTPS only
+        SameSite: http.SameSiteLaxMode, 
+        MaxAge:   3600,            // Expires in 1 hour (in seconds)
+    }
+    http.SetCookie(w, cookie1)
 
+	// END ACCESS TOKEN COOKIE 
+
+	fakedbhelpers.StoreVerificationToken(verificationTokenValue)
+
+
+	w.Write([]byte("Hi, Logged in user"))
+}
+
+func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
+
+	// TODO fetch user id from db after verifying stored verification token  
+	accessTokenValue := lib.GetUserAccessToken()
+	
 	cookie1 := &http.Cookie{
         Name:     "access_token",
         Value:    accessTokenValue,
@@ -43,8 +68,13 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 	
 	w.Write([]byte("Hi, Logged in user"))
 }
+
+
 func LoginController(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hi"))
+	// TODO if both acces and refresh tokens, redirect to homepage
+
+
+
 }
 func RefreshTokenController(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hi"))

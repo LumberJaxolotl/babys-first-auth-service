@@ -10,23 +10,57 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var JWT_SECRET []byte
+var VERIFICATION_TOKEN_SIGNING_SECRET []byte
+var ACCESS_TOKEN_SIGNING_SECRET []byte
+var REFRESH_TOKEN_SIGNING_SECRET []byte
+
 
 func init() {
-	// Loads the .env file and initialize JWT_SECRET as package-level variable
+	// Loads the .env file and initializes the signing secrets as package-level variables
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 	
-	jwtSecret := os.Getenv("jwt_secret");
-	if jwtSecret == "" {
-		log.Fatal("Enviroment variable 'jwt_secret' could not be found")
+	verificationTokenSigningSecret := os.Getenv("VERIFICATION_TOKEN_SIGNING_SECRET")
+	accessTokenSigningSecret := os.Getenv("ACCESS_TOKEN_SIGNING_SECRET")
+	refreshTokenSigningSecret := os.Getenv("REFRESH_TOKEN_SIGNING_SECRET")
+
+	if verificationTokenSigningSecret == "" {
+		log.Fatal("Enviroment variable 'VERIFICATION_TOKEN_SIGNING_SECRET' could not be found")
+	}else if accessTokenSigningSecret == "" {
+		log.Fatal("Enviroment variable 'ACCESS_TOKEN_SIGNING_SECRET' could not be found")
+	}else if refreshTokenSigningSecret == "" {
+		log.Fatal("Enviroment variable 'REFRESH_TOKEN_SIGNING_SECRET' could not be found")
 	}
 
-
-	JWT_SECRET = []byte(jwtSecret)
+	VERIFICATION_TOKEN_SIGNING_SECRET = []byte(verificationTokenSigningSecret)
+	ACCESS_TOKEN_SIGNING_SECRET = []byte(accessTokenSigningSecret)
+	REFRESH_TOKEN_SIGNING_SECRET = []byte(refreshTokenSigningSecret)
+	
 }
+
+func GetUserVerificationToken(userId string) (*jwt.Token, string, error) {
+
+	claims := jwt.MapClaims{
+		"user_id": userId,
+		"iat":     time.Now().Unix(),                       // Issued at
+		"exp":     time.Now().Add(time.Minute * 15).Unix(), // times-out at
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenValue, err := token.SignedString(VERIFICATION_TOKEN_SIGNING_SECRET)
+
+
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("Error Signing Access Token")
+	}
+
+	return token, tokenValue, nil
+}
+
 
 // return basic jwt string containing the user id
 func GetUserAccessToken(userId string) string {
@@ -39,7 +73,7 @@ func GetUserAccessToken(userId string) string {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tokenValue, err := token.SignedString(JWT_SECRET)
+	tokenValue, err := token.SignedString(ACCESS_TOKEN_SIGNING_SECRET)
 	if err != nil {
 		fmt.Println(err)
 		log.Fatal("Error Signing Access Token")
@@ -60,7 +94,7 @@ func GetUserRefreshToken(userId string) (*jwt.Token, string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tokenValue, err := token.SignedString(JWT_SECRET)
+	tokenValue, err := token.SignedString(REFRESH_TOKEN_SIGNING_SECRET)
 
 
 	if err != nil {
@@ -70,3 +104,5 @@ func GetUserRefreshToken(userId string) (*jwt.Token, string, error) {
 
 	return token, tokenValue, nil
 }
+
+

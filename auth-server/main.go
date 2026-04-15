@@ -30,16 +30,19 @@ func main() {
 		// 1. Public: Register a new user
 		r.Post("/register", controllers.RegisterController)
 
+		// 2. Public: take code and finish registration
+		r.Post("/verify-email", controllers.VerifyEmailController)
+
 		// 3. Public: Use Refresh Token to get a new Access Token
 		r.Post("/refresh", controllers.RefreshTokenController)
 		
-		// 2. Public: Exchange credentials for tokens
+		// 4. Public: Exchange credentials for tokens
 		r.Post("/login", controllers.LoginController)
 
-		// 4. Public/Private: Invalidate the session
+		// 5. Public/Private: Invalidate the session
 		r.Post("/logout", controllers.LogoutController)
 
-		// 5. Protected: Get current user info (requires Auth middleware)
+		// 6. Protected: Get current user info (requires Auth middleware)
 		r.Get("/me", controllers.GetMeController)
 
 	})

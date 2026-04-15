@@ -37,6 +37,12 @@ CREATE TABLE auth.refresh_tokens (
     revoked_at TIMESTAMPTZ 
 );
 
+CREATE TABLE auth.verification_tokens (
+    id UUID PRIMARY KEY DEFAULT uuidv7(), 
+    user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+    token_hash TEXT NOT NULL UNIQUE
+);
+
 
 
 -- PostgREST setup
