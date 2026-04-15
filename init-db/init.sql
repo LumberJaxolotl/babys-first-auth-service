@@ -1,8 +1,11 @@
 CREATE schema api;
 
+
+
+
 -- 1. Users Table
 -- Uses native uuidv7() as the default primary key
-CREATE TABLE users (
+CREATE TABLE api.users (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
@@ -10,7 +13,7 @@ CREATE TABLE users (
     is_email_verified BOOLEAN DEFAULT FALSE NOT NULL, 
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    deleted_at TIMESTAMPTZ DEFAULT NULL
 );
 
 INSERT INTO api.users (email, password, full_name) VALUES
@@ -24,9 +27,9 @@ INSERT INTO api.users (email, password, full_name) VALUES
 
 
 --  Refresh Tokens Table
-CREATE TABLE refresh_tokens (
+CREATE TABLE api.refresh_tokens (
     id UUID PRIMARY KEY DEFAULT uuidv7(), 
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES api.users(id) ON DELETE CASCADE,
     token_hash TEXT NOT NULL UNIQUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL,

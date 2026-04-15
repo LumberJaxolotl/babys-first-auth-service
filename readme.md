@@ -1,6 +1,7 @@
 # Babys First PostgREST Server
 
 ## Getting Running
+Install and launch [`docker desktop`](https://www.docker.com/products/docker-desktop/)
 Run `docker compose up`
 Open `http://localhost:3000`
 ## Notes
