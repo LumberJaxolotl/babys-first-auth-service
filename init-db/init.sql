@@ -1,11 +1,11 @@
-CREATE schema api;
+CREATE schema auth;
 
 
 
 
 -- 1. Users Table
 -- Uses native uuidv7() as the default primary key
-CREATE TABLE api.users (
+CREATE TABLE auth.users (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE api.users (
     deleted_at TIMESTAMPTZ DEFAULT NULL
 );
 
-INSERT INTO api.users (email, password, full_name) VALUES
+INSERT INTO auth.users (email, password, full_name) VALUES
 ('alex.rivera@example.com', 'P@ssw0rd123', 'Alex Rivera'),
 ('sarah.chen@techmail.org', 'SecureKey!99', 'Sarah Chen'),
 ('jordan.smith@webmail.net', 'QueryMaster#1', 'Jordan Smith'),
@@ -27,9 +27,9 @@ INSERT INTO api.users (email, password, full_name) VALUES
 
 
 --  Refresh Tokens Table
-CREATE TABLE api.refresh_tokens (
+CREATE TABLE auth.refresh_tokens (
     id UUID PRIMARY KEY DEFAULT uuidv7(), 
-    user_id UUID NOT NULL REFERENCES api.users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     token_hash TEXT NOT NULL UNIQUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL,
@@ -41,11 +41,12 @@ CREATE TABLE api.refresh_tokens (
 -- PostgREST setup
 create role web_anon nologin;
 
-grant usage ON schema api to web_anon;
-GRANT SELECT ON ALL TABLES IN SCHEMA api TO web_anon;
+grant usage ON schema auth to web_anon;
+GRANT SELECT ON ALL TABLES IN SCHEMA auth TO web_anon;
 
 create role authenticator noinherit login password 'mysecretpassword';
 grant web_anon to authenticator;
+
 -- End PostgREST setup
 
 /* -- 3. Roles Table
