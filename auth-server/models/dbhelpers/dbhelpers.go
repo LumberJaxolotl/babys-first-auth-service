@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
 
 var db *sqlx.DB
+
 
 func init() {
 	// Format: postgres://username:password@localhost:5432/database_name
@@ -35,20 +37,44 @@ func init() {
 }
 
 // TODO build this out 
-func StoreRefreshToken() {
-	db.MustExec(`INSERT VALUES FROM User`)
+
+func StoreRefreshToken(userId string, tokenStr string) {
+	
+	// calculating expires_at value
+	const tokenExpiresIn = time.Hour * 24 * 60 
+	expiresAt := time.Now().Add(tokenExpiresIn).Format(time.RFC3339)  
+    tx := db.MustBegin()
+    tx.MustExec(
+		"INSERT INTO auth.refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)", 
+		userId, tokenStr, expiresAt)
+    tx.Commit()
 }
 
-func ValidateRefreshToken(tokenStr string) {
+type RefreshToken struct {
+	ID        string `db:"id"`
+	user_id   string
+	TokenHash string `db:"token_hash"`
+}
+
+func GetRefreshToken(tokenStr string) (RefreshToken, error) {
 	// TODO validate this is the right method + sql code
-	db.Select(`
-		SELECT user_id, token_hash 
-		FROM User
-		WHERE 
-			user_id = 
+	
+
+	token := RefreshToken{}
+	err := db.Get(&token, `
+		SELECT id, user_id, token_hash
+		FROM auth.refresh_tokens
+		WHERE
+			user_id = $1
 			AND
-			token_hash = 
-	`)
+			token_hash = $2
+	`, tokenStr)
+	if err != nil {
+		log.Println("Token validation failed:", err)
+		return RefreshToken{}, err
+	}
+
+	return token, nil
 }
 
 
