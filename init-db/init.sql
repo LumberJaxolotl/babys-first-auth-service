@@ -24,7 +24,7 @@ INSERT INTO auth.users (id, email, password, full_name) VALUES
 ('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', 'marta.gomez@pro-dev.io', 'DevOps_Life2026', 'Marta Gomez'),
 ('e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 'liam.wilson@startup.com', 'BlueSky$88', 'Liam Wilson'),
 ('f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16', 'priya.sharma@data-viz.com', 'ChartLover!22', 'Priya Sharma'),
-('g0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', 'kevin.adams@cloud-sync.net', 'Nebula_77!#', 'Kevin Adams');
+('f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', 'kevin.adams@cloud-sync.net', 'Nebula_77!#', 'Kevin Adams');
 
 
 --  Refresh Tokens Table

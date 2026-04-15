@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 var db *sqlx.DB
@@ -14,7 +15,7 @@ var db *sqlx.DB
 
 func init() {
 	// Format: postgres://username:password@localhost:5432/database_name
-	dsn := "postgres://app_user:password@localhost:5432/app_db"
+	dsn := "postgres://app_user:password@localhost:5432/app_db?sslmode=disable"
 
 	// 1. Create a connection
 	conn, err := sqlx.Connect("postgres", dsn)

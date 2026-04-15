@@ -1,8 +1,8 @@
-package dbhelpers
+package dbhelpers_test
 
 import (
 	"testing"
-
+	
 	"github.com/LumberJaxolotl/babys-first-auth-service/models/dbhelpers"
 )
 
