@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"fmt"
+	"io"
+	"log"
 	"net/http"
 
 	"github.com/LumberJaxolotl/babys-first-auth-service/models/fakedbhelpers"
@@ -27,7 +30,7 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 
 	// END ACCESS TOKEN COOKIE 
 
-	fakedbhelpers.StoreVerificationToken(verificationTokenValue)
+	// fakedbhelpers.StoreVerificationToken(verificationTokenValue)
 
 
 	w.Write([]byte("Hi, Logged in user"))
@@ -36,7 +39,7 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 
 	// TODO fetch user id from db after verifying stored verification token  
-	accessTokenValue := lib.GetUserAccessToken()
+	accessTokenValue := lib.GetUserAccessToken("safdsafdsafdsafdsafdsafs")
 	
 	cookie1 := &http.Cookie{
         Name:     "access_token",
@@ -83,5 +86,22 @@ func LogoutController(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hi"))
 }
 func GetMeController(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hi"))
+	
+	
+	resp, err := http.Get("http://localhost:3000/users?id=eq.a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11")
+	if err != nil {
+   		log.Fatalln(err)
+	}
+	
+	defer resp.Body.Close()
+
+	// 3. Read the entire body into a byte slice
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Failed to read body: %s\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write( body )
 }
