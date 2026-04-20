@@ -10,9 +10,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// ---------------------- Postgres Boilerplate -------------------
 var db *sqlx.DB
-
-
 func init() {
 	// Format: postgres://username:password@localhost:5432/database_name
 	dsn := "postgres://app_user:password@localhost:5432/app_db?sslmode=disable"
@@ -36,8 +35,15 @@ func init() {
 	// but thats ok for an example:)
 	fmt.Println("Successfully connected to Postgres!")
 }
+// ---------------------- END Postgres Boilerplate -----------------
 
-// TODO build this out 
+// --------------------- Refresh Token CRUD ------------------------ 
+
+type RefreshToken struct {
+	ID        string `db:"id"`
+	user_id   string
+	TokenHash string `db:"token_hash"`
+}
 
 func StoreRefreshToken(userId string, tokenStr string) {
 	
@@ -49,12 +55,6 @@ func StoreRefreshToken(userId string, tokenStr string) {
 		"INSERT INTO auth.refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)", 
 		userId, tokenStr, expiresAt)
     tx.Commit()
-}
-
-type RefreshToken struct {
-	ID        string `db:"id"`
-	user_id   string
-	TokenHash string `db:"token_hash"`
 }
 
 func GetRefreshToken(tokenStr string) (RefreshToken, error) {
@@ -78,5 +78,35 @@ func GetRefreshToken(tokenStr string) (RefreshToken, error) {
 	return token, nil
 }
 
+// --------------------- END Refresh Token CRUD ------------------------ 
 
+// --------------------- Verification Token CRUD ------------------------ 
+type VerificationToken struct {
+	ID        string `db:"id"`
+	user_id   string
+	TokenHash string `db:"token_hash"`
+}
 
+func isCorrectEmailVerificationCode(userId string, verificationCode string){
+	db.Get(&VerificationToken{},`
+		SELECT * 
+		FROM auth.verification_tokens
+		WHERE user_id = "$1"
+	`, verificationCode)
+}
+
+func setUserToEmailVerified(){
+	
+}
+
+func StoreVerificationToken(userId string, tokenStr string) {
+	// calculating expires_at value
+	const tokenExpiresIn = time.Minute * 15 
+	expiresAt := time.Now().Add(tokenExpiresIn).Format(time.RFC3339)  
+    tx := db.MustBegin()
+    tx.MustExec(
+		"INSERT INTO auth.refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)", 
+		userId, tokenStr, expiresAt)
+    tx.Commit()
+}
+// --------------------- END Verification Token CRUD ------------------------ 

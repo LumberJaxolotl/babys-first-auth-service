@@ -10,14 +10,12 @@ Open `http://localhost:3000`
 ###
 Steps for buulding this out
 
-1. learn more on jwt
-2. decide to use jwt library or not
-3. finish database schema (add database views)
-4. read more on postgres security topics
-5. test database schema by inserting row and then querying from view
-6. build out jwt handlers
-7. endpoint code for storing passwords
-8. add frontend pages for, login, register, homepage with automatic redirect if not logged in
+1. Write more SQL for endpoints
+2. finish up generate and verify for all token types in /lib/
+3. finish up crud functions for all token types in /lib/
+4. add more test data to init.sql
+5. create more endpoint requests in thunder client 
+6. add frontend pages for, login, register, homepage with automatic redirect if not logged in
 
 
 

@@ -40,7 +40,10 @@ CREATE TABLE auth.refresh_tokens (
 CREATE TABLE auth.verification_tokens (
     id UUID PRIMARY KEY DEFAULT uuidv7(), 
     user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
-    token_hash TEXT NOT NULL UNIQUE
+    token_hash TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    expires_at TIMESTAMPTZ NOT NULL,
+    revoked_at TIMESTAMPTZ 
 );
 
 

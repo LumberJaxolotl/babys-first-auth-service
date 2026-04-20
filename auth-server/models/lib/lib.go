@@ -1,19 +1,22 @@
 package lib
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 )
 
+
 var VERIFICATION_TOKEN_SIGNING_SECRET []byte
 var ACCESS_TOKEN_SIGNING_SECRET []byte
 var REFRESH_TOKEN_SIGNING_SECRET []byte
-
 
 func init() {
 	// Loads the .env file and initializes the signing secrets as package-level variables
@@ -40,6 +43,8 @@ func init() {
 	
 }
 
+
+// ---- Verification Tokens | Generation and Verification Logic -----
 func GetUserVerificationToken(userId string) (*jwt.Token, string, error) {
 
 	claims := jwt.MapClaims{
@@ -61,8 +66,15 @@ func GetUserVerificationToken(userId string) (*jwt.Token, string, error) {
 	return token, tokenValue, nil
 }
 
+func verifyVerificationToken(,){
 
-// return basic jwt string containing the user id
+}
+
+// ---- END Access Tokens | Generation and Verification Logic -----
+
+// ---- Access Tokens | Generation and Verification Logic -----
+
+// returns basic jwt string containing the user id
 func GetUserAccessToken(userId string) string {
 
 	claims := jwt.MapClaims{
@@ -104,5 +116,15 @@ func GetUserRefreshToken(userId string) (*jwt.Token, string, error) {
 
 	return token, tokenValue, nil
 }
+
+func EncryptString(password string)(string, error){
+	hash := sha256.Sum256([]byte(password))
+	bcryptHash, err := bcrypt.GenerateFromPassword(hash[:], bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(bcryptHash), nil
+}
+
 
 
