@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/LumberJaxolotl/babys-first-auth-service/models/dbhelpers"
 	"github.com/LumberJaxolotl/babys-first-auth-service/models/fakedbhelpers"
 	"github.com/LumberJaxolotl/babys-first-auth-service/models/lib"
 )
@@ -54,9 +55,20 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 	    http.Error(w, "Failed to parse form", http.StatusBadRequest)
 	    return
 	}
+	email := r.Form.Get("email")
 	emailVerificationCode := r.Form.Get("email_verification_code")
 	
-	lib.store
+	dbRetrievedToken, err := dbhelpers.GetEmailVerificationToken(email)
+	if err != nil {
+	    http.Error(w, "Failed to fetch token from database", 500)
+	    return
+	}
+	if dbRetrievedToken == "" {
+	    http.Error(w, "No matching token found", http.StatusNoContent)
+	    return
+	}  
+
+	lib.DoTokensMatch(emailVerificationCode, dbRetrievedToken)
 	// TODO fetch user id from db after verifying stored verification token
 	accessTokenValue := lib.GetUserAccessToken("safdsafdsafdsafdsafdsafs")
 
@@ -91,6 +103,7 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hi, Logged in user"))
 }
 
+// For testing reference
 var UNHASHED_PASSWORDS = []string{
 	"P@ssw0rd123",
 	"SecureKey!99",
@@ -111,6 +124,8 @@ func RefreshTokenController(w http.ResponseWriter, r *http.Request) {
 func LogoutController(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hi"))
 }
+// TODO reimpliment getting jwt claims from header and then a 
+// db request, not through postgREST service  
 func GetMeController(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := http.Get("http://localhost:3000/users?id=eq.a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11")
@@ -120,7 +135,7 @@ func GetMeController(w http.ResponseWriter, r *http.Request) {
 
 	defer resp.Body.Close()
 
-	// 3. Read the entire body into a byte slice
+	// Read the entire body into a byte slice
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("Failed to read body: %s\n", err)

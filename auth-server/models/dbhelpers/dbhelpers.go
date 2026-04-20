@@ -1,6 +1,7 @@
 package dbhelpers
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -87,16 +88,33 @@ type VerificationToken struct {
 	TokenHash string `db:"token_hash"`
 }
 
-func isCorrectEmailVerificationCode(userId string, verificationCode string){
-	db.Get(&VerificationToken{},`
+func GetEmailVerificationToken(email string)(string, error){
+	tokenStr := VerificationToken{} 
+	err := db.Get(&tokenStr,`
 		SELECT * 
 		FROM auth.verification_tokens
-		WHERE user_id = "$1"
-	`, verificationCode)
+		WHERE email = "$1"
+	`, email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+        	// Handle the "Not Found" case specifically
+        	fmt.Println("No Verification code matched email passed")
+        	return "", nil
+    	}
+		return "", err
+	}
+	return tokenStr.TokenHash, nil 
 }
 
-func setUserToEmailVerified(){
+func SetUserToEmailVerified(userId string){
+	tx := db.MustBegin()
+    tx.MustExec(`
+		UPDATE auth.users
+		SET is_email_verified = TRUE
+		WHERE user_id = $1;
+	`, userId)
 	
+    tx.Commit()
 }
 
 func StoreVerificationToken(userId string, tokenStr string) {
@@ -105,7 +123,10 @@ func StoreVerificationToken(userId string, tokenStr string) {
 	expiresAt := time.Now().Add(tokenExpiresIn).Format(time.RFC3339)  
     tx := db.MustBegin()
     tx.MustExec(
-		"INSERT INTO auth.refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)", 
+		`
+			INSERT INTO auth.verification_tokens 
+			(user_id, token_hash, expires_at) VALUES ($1, $2, $3)
+		`, 
 		userId, tokenStr, expiresAt)
     tx.Commit()
 }

@@ -66,8 +66,12 @@ func GetUserVerificationToken(userId string) (*jwt.Token, string, error) {
 	return token, tokenValue, nil
 }
 
-func verifyVerificationToken(,){
-
+func DoTokensMatch(recievedToken string, storedEncryptedToken string) (bool, error) {
+	recievedEncryptedToken, err := EncryptString(recievedToken)
+	if err != nil {
+		return false, err
+	}
+	return recievedEncryptedToken == storedEncryptedToken, nil
 }
 
 // ---- END Access Tokens | Generation and Verification Logic -----
@@ -93,6 +97,8 @@ func GetUserAccessToken(userId string) string {
 
 	return tokenValue
 }
+// ---- Refresh Tokens | Generation and Verification Logic -----
+
 
 // Returns refresh token obj for storing in DB and
 // string value for use in cookie
@@ -116,6 +122,8 @@ func GetUserRefreshToken(userId string) (*jwt.Token, string, error) {
 
 	return token, tokenValue, nil
 }
+
+// ------------------------- Misc. Helpers ------------------------------
 
 func EncryptString(password string)(string, error){
 	hash := sha256.Sum256([]byte(password))
