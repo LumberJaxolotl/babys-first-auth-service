@@ -36,6 +36,11 @@ func init() {
 	// but thats ok for an example:)
 	fmt.Println("Successfully connected to Postgres!")
 }
+// gets a connection to the db for convenience in testing 
+func getDB()*sqlx.DB{
+	return db
+}
+
 // ---------------------- END Postgres Boilerplate -----------------
 
 // --------------------- Refresh Token CRUD ------------------------ 

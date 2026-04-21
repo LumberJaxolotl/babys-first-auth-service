@@ -13,6 +13,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// TODO split file into JWTHELPERS and lib.go
 
 var VERIFICATION_TOKEN_SIGNING_SECRET []byte
 var ACCESS_TOKEN_SIGNING_SECRET []byte
@@ -66,12 +67,26 @@ func GetUserVerificationToken(userId string) (*jwt.Token, string, error) {
 	return token, tokenValue, nil
 }
 
-func DoTokensMatch(recievedToken string, storedEncryptedToken string) (bool, error) {
-	recievedEncryptedToken, err := EncryptString(recievedToken)
+// TODO gemini generated need to test
+func IsAccessTokenValid(tokenString string) (bool, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return ACCESS_TOKEN_SIGNING_SECRET, nil
+	})
 	if err != nil {
 		return false, err
 	}
-	return recievedEncryptedToken == storedEncryptedToken, nil
+	if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return true, nil
+	}
+	return false, nil
+}
+
+// TODO need to impliment
+func isValidRefreshToken(recievedToken string, storedEncryptedToken string) (bool, error) {
+	
 }
 
 // ---- END Access Tokens | Generation and Verification Logic -----
@@ -125,7 +140,7 @@ func GetUserRefreshToken(userId string) (*jwt.Token, string, error) {
 
 // ------------------------- Misc. Helpers ------------------------------
 
-func EncryptString(password string)(string, error){
+func HashPassword(password string)(string, error){
 	hash := sha256.Sum256([]byte(password))
 	bcryptHash, err := bcrypt.GenerateFromPassword(hash[:], bcrypt.DefaultCost)
 	if err != nil {
@@ -133,6 +148,8 @@ func EncryptString(password string)(string, error){
 	}
 	return string(bcryptHash), nil
 }
+
+
 
 
 
