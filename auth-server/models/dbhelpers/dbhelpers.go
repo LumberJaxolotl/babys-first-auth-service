@@ -57,9 +57,14 @@ func StoreRefreshToken(userId string, tokenStr string) {
 	const tokenExpiresIn = time.Hour * 24 * 60 
 	expiresAt := time.Now().Add(tokenExpiresIn).Format(time.RFC3339)  
     tx := db.MustBegin()
-    tx.MustExec(
-		"INSERT INTO auth.refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)", 
-		userId, tokenStr, expiresAt)
+	tx.MustExec(`
+		INSERT INTO auth.refresh_tokens 
+		(user_id, token_hash, expires_at) 
+		VALUES ($1, $2, $3)
+		ON CONFLICT (user_id) DO UPDATE SET
+			token_hash = EXCLUDED.token_hash,
+			expires_at = EXCLUDED.expires_at
+	`, userId, tokenStr, expiresAt)
     tx.Commit()
 }
 
