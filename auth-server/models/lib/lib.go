@@ -149,7 +149,9 @@ func HashPassword(password string)(string, error){
 	return string(bcryptHash), nil
 }
 
-
-
+func DoTokensMatch(token1 string, token2 string, signingSecret string)(bool, error){
+	
+	return false, nil
+}
 
 
