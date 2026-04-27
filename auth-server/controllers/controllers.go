@@ -27,7 +27,7 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 	// TODO fetch user id from verification token claims
 	_, verificationTokenValue, _ := lib.GetUserVerificationToken("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11")
 
-
+	// fakedbhelpers.StoreVerificationToken(verificationTokenValue)
 
 	cookie1 := &http.Cookie{
 		Name:     "verification_token",
@@ -42,9 +42,23 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 
 	// END ACCESS TOKEN COOKIE
 
-	// fakedbhelpers.StoreVerificationToken(verificationTokenValue)
+	// learn more about process of email token verification
+	// https://gemini.google.com/app/5135f941d0b938af
 
-	w.Write([]byte("Hi, Logged in user"))
+	w.Write([]byte(`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Verification</title>
+</head>
+<body>
+    <form action="/verify-email" method="POST">
+        <label for="code">Verification Code:</label>
+        <input type="text" id="code" name="email_verification_code" required>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>`))
 }
 
 func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
@@ -52,24 +66,31 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 	// Check Code Passed is valid
 	err := r.ParseForm()
 	if err != nil {
-	    http.Error(w, "Failed to parse form", http.StatusBadRequest)
-	    return
+		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		return
 	}
 	email := r.Form.Get("email")
 	emailVerificationCode := r.Form.Get("email_verification_code")
-	
+
 	dbRetrievedToken, err := dbhelpers.GetEmailVerificationToken(email)
 	if err != nil {
-	    http.Error(w, "Failed to fetch token from database", 500)
-	    return
+		http.Error(w, "Failed to fetch token from database", 500)
+		return
 	}
 	if dbRetrievedToken == "" {
-	    http.Error(w, "No matching token found", http.StatusNoContent)
-	    return
-	}  
+		http.Error(w, "No matching token found", http.StatusNoContent)
+		return
+	}
 
-	lib.DoTokensMatch(emailVerificationCode, dbRetrievedToken)
+	doTokensMatch, err := lib.DoTokensMatch(emailVerificationCode, dbRetrievedToken, sign)
 	// TODO fetch user id from db after verifying stored verification token
+	if err != nil {
+		http.Error(w, "Error Verifying Email Verification Token", http.StatusBadRequest)
+	}
+	if doTokensMatch == false {
+		http.Error(w, "Invalid Email Verification Token Passed", http.StatusUnauthorized)
+	}
+
 	accessTokenValue := lib.GetUserAccessToken("safdsafdsafdsafdsafdsafs")
 
 	cookie1 := &http.Cookie{
@@ -124,8 +145,9 @@ func RefreshTokenController(w http.ResponseWriter, r *http.Request) {
 func LogoutController(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hi"))
 }
-// TODO reimpliment getting jwt claims from header and then a 
-// db request, not through postgREST service  
+
+// TODO reimpliment getting jwt claims from header and then a
+// db request, not through postgREST service
 func GetMeController(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := http.Get("http://localhost:3000/users?id=eq.a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11")
