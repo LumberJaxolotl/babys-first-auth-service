@@ -91,6 +91,19 @@ func GetRefreshToken(tokenStr string) (RefreshToken, error) {
 
 // --------------------- END Refresh Token CRUD ------------------------ 
 
+// --------------------- Create User ------------------------ 
+func CreateUser(email string, password string, fullName string){
+	tx := db.MustBegin()
+    tx.MustExec(`
+		INSERT INTO auth.users (email, password, full_name)
+		VALUES ($1, $2, $3);
+	`, email, password, fullName)
+	
+    tx.Commit()
+} 
+// --------------------- END Create User ------------------------ 
+
+
 // --------------------- Verification Token CRUD ------------------------ 
 type VerificationToken struct {
 	ID        string `db:"id"`

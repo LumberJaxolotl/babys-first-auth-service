@@ -86,7 +86,7 @@ func IsAccessTokenValid(tokenString string) (bool, error) {
 
 // TODO need to impliment
 func isValidRefreshToken(recievedToken string, storedEncryptedToken string) (bool, error) {
-	
+	return false, nil
 }
 
 // ---- END Access Tokens | Generation and Verification Logic -----

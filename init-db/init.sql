@@ -16,8 +16,9 @@ CREATE TABLE auth.users (
     deleted_at TIMESTAMPTZ DEFAULT NULL
 );
 
-/* For Testing */
+/* Dummy Data For Testing */
 INSERT INTO auth.users (id, email, password, full_name) VALUES
+/* Most tests run on this user, Alex Rivera */
 ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'alex.rivera@example.com', 'P@ssw0rd123', 'Alex Rivera'),
 ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'sarah.chen@techmail.org', 'SecureKey!99', 'Sarah Chen'),
 ('c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'jordan.smith@webmail.net', 'QueryMaster#1', 'Jordan Smith'),

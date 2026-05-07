@@ -14,20 +14,29 @@ import (
 func RegisterController(w http.ResponseWriter, r *http.Request) {
 
 	// quick check that all values are valid
-	// err := r.ParseForm()
-	// if err != nil {
-	//     http.Error(w, "Failed to parse form", http.StatusBadRequest)
-	//     return
-	// }
+	
+	maxMemory := int64(32 << 10)
+	if err := r.ParseMultipartForm(maxMemory); err != nil {
+        http.Error(w, "Unable to parse form", http.StatusBadRequest)
+        return
+    }
 
-	// name := r.Form.Get("name")
-	// email := r.Form.Get("email")
-	// password := r.Form.Get("password")
+	fullName := r.Form.Get("name")
+	email := r.Form.Get("email")
+	password := r.Form.Get("password")
+
+	
+	fmt.Println("Form Values Recieved:")
+	fmt.Println("fullName: ", fullName)
+	fmt.Println("email: ", email)
+	fmt.Println("password: ", password)
+
+	dbhelpers.CreateUser(email, password, fullName)
 
 	// TODO fetch user id from verification token claims
 	_, verificationTokenValue, _ := lib.GetUserVerificationToken("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11")
 
-	// fakedbhelpers.StoreVerificationToken(verificationTokenValue)
+	// dbhelpers.StoreVerificationToken(verificationTokenValue)
 
 	cookie1 := &http.Cookie{
 		Name:     "verification_token",
@@ -64,11 +73,12 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 
 	// Check Code Passed is valid
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Failed to parse form", http.StatusBadRequest)
-		return
-	}
+	maxMemory := int64(32 << 10)
+	if err := r.ParseMultipartForm(maxMemory); err != nil {
+        http.Error(w, "Unable to parse form", http.StatusBadRequest)
+        return
+    }
+	
 	email := r.Form.Get("email")
 	emailVerificationCode := r.Form.Get("email_verification_code")
 
@@ -82,7 +92,11 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	doTokensMatch, err := lib.DoTokensMatch(emailVerificationCode, dbRetrievedToken, sign)
+	doTokensMatch, err := lib.DoTokensMatch(
+		emailVerificationCode, 
+		dbRetrievedToken, 
+		string(lib.VERIFICATION_TOKEN_SIGNING_SECRET),
+	)
 	// TODO fetch user id from db after verifying stored verification token
 	if err != nil {
 		http.Error(w, "Error Verifying Email Verification Token", http.StatusBadRequest)
@@ -136,8 +150,7 @@ var UNHASHED_PASSWORDS = []string{
 }
 
 func LoginController(w http.ResponseWriter, r *http.Request) {
-	// TODO if both acces and refresh tokens, redirect to homepage
-
+	// TODO if both access and refresh tokens, redirect to homepage
 }
 func RefreshTokenController(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hi"))
