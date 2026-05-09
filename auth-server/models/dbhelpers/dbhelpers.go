@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -92,14 +93,22 @@ func GetRefreshToken(tokenStr string) (RefreshToken, error) {
 // --------------------- END Refresh Token CRUD ------------------------ 
 
 // --------------------- Create User ------------------------ 
-func CreateUser(email string, password string, fullName string){
+func CreateUser(email string, password string, fullName string)(string, error){
+	// Generates a uuid
+	uuid, err := uuid.NewV7()
+	if err != nil {
+		log.Fatalf("failed to generate UUID: %v", err)
+	}
+	userId := uuid.String() 
+	// Adds user to database
 	tx := db.MustBegin()
     tx.MustExec(`
-		INSERT INTO auth.users (email, password, full_name)
-		VALUES ($1, $2, $3);
-	`, email, password, fullName)
-	
+		INSERT INTO auth.users (id, email, password, full_name)
+		VALUES ($1, $2, $3, $4);
+	`, userId, email, password, fullName)
     tx.Commit()
+	// Returns id of created user
+	return userId, nil
 } 
 // --------------------- END Create User ------------------------ 
 

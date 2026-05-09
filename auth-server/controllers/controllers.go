@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/LumberJaxolotl/babys-first-auth-service/models/dbhelpers"
 	"github.com/LumberJaxolotl/babys-first-auth-service/models/fakedbhelpers"
@@ -31,12 +32,17 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("email: ", email)
 	fmt.Println("password: ", password)
 
-	dbhelpers.CreateUser(email, password, fullName)
+	
+	userId, err := dbhelpers.CreateUser(email, password, fullName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to create user in database: %v\n", err)
+		os.Exit(1)
+	}
 
 	// TODO fetch user id from verification token claims
-	_, verificationTokenValue, _ := lib.GetUserVerificationToken("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11")
+	_, verificationTokenValue, _ := lib.GetUserVerificationToken(userId)
 
-	// dbhelpers.StoreVerificationToken(verificationTokenValue)
+	dbhelpers.StoreVerificationToken(userId, verificationTokenValue)
 
 	cookie1 := &http.Cookie{
 		Name:     "verification_token",
