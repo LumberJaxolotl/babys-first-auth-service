@@ -1,6 +1,7 @@
 package dbhelpers_test
 
 import (
+	"log"
 	"testing"
 
 	"github.com/LumberJaxolotl/babys-first-auth-service/models/dbhelpers"
@@ -20,11 +21,10 @@ func TestVerificationTokenStoreAndGetFunctions(t *testing.T) {
     
 	token, err := dbhelpers.GetEmailVerificationToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
 	if err != nil {
-		actual = err
+		log.Fatal(err)
 	}
 	
-
-
+	actual = token
 	if actual != expected {
         t.Errorf("Expected %s, but got %s", expected, actual)
     }

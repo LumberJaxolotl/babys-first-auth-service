@@ -125,6 +125,8 @@ func GetEmailVerificationToken(email string)(string, error){
 	err := db.Get(&tokenStr,`
 		SELECT * 
 		FROM auth.verification_tokens
+		LEFT JOIN auth.users
+		ON auth.verification_tokens.user_id = auth.users.id;
 		WHERE email = "$1"
 	`, email)
 	if err != nil {
