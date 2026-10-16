@@ -122,17 +122,17 @@ type VerificationToken struct {
 
 func GetEmailVerificationToken(email string)(string, error){
 	tokenStr := VerificationToken{} 
-	err := db.Get(&tokenStr,`
-		SELECT * 
+	// part of quuery to put back in later
+	// ON auth.verification_tokens.user_id = auth.users.id
+	err := db.Get(&tokenStr,`SELECT token_hash 
 		FROM auth.verification_tokens
 		LEFT JOIN auth.users
-		ON auth.verification_tokens.user_id = auth.users.id;
-		WHERE email = "$1"
-	`, email)
+			ON auth.users.id = auth.verification_tokens.user_id
+		WHERE auth.users.email = 'alex.rivera@example.com';`)
 	if err != nil {
 		if err == sql.ErrNoRows {
         	// Handle the "Not Found" case specifically
-        	fmt.Println("No Verification code matched email passed")
+        	fmt.Println("No Verification Token matched email passed")
         	return "", nil
     	}
 		return "", err

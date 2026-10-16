@@ -26,6 +26,8 @@ func main() {
 		w.Write([]byte("Hi"))
 	})
 
+	
+
 	r.Route("/auth", func(r chi.Router) {
 		// 1. Public: Register a new user
 		r.Post("/register", controllers.RegisterController)

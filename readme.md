@@ -2,6 +2,8 @@
 
 A modular, lightweight authentication service and database scaffolding built with **Go (Chi)**, **PostgreSQL**, and **PostgREST**, running containerized with **Docker Compose**.
 
+
+
 ---
 
 ## 🏛️ Architecture Overview
@@ -74,6 +76,11 @@ Run `docker compose up`
 Open `http://localhost:3000`
 
 ---
+## For shelling into
+`docker exec -it <container-id> psql -U app_user app_db`
+
+
+---
 
 ## 🧪 Test Data & Pre-seeded Accounts
 
@@ -94,6 +101,7 @@ The database comes pre-seeded from [`init.sql`](init-db/init.sql) with ready-to-
 - [x] PostgREST schema and Docker Compose setup.
 - [x] Chi router initialization and base middleware stack.
 - [x] Initial registration and verification controller logic.
+- [ ] debug why `auth.email_verification_codes` is not initalizing in the db correctly
 - [ ] Connect `HashPassword` directly to `CreateUser` in registration flow.
 - [ ] Complete `LoginController` password verification against stored bcrypt hashes.
 - [ ] Finish token rotation logic in `RefreshTokenController`.

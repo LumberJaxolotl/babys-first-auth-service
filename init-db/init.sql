@@ -50,9 +50,15 @@ CREATE TABLE auth.verification_tokens (
 );
 CREATE TABLE auth.email_verification_codes (
     id UUID PRIMARY KEY DEFAULT uuidv7(), 
-    user_id UUID NOT NULL UNIQUE REFERENCES auth.verification_tokens(id) ON DELETE CASCADE,
-    email_verification_code CHAR(6) CHECK (code ~ '^[0-9]{6}$') DEFAULT '000000'
+    user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+    email_verification_code CHAR(6) CHECK (email_verification_code ~ '^[0-9]{6}$') DEFAULT '000000'
 );
+/* For seeding */
+INSERT INTO auth.email_verification_codes (user_id, email_verification_code)
+VALUES 
+    ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '000000'),
+    ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', '654321'),
+    ('c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', '987654');
 -- END Email Verification Logic Tables
 
 
