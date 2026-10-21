@@ -40,6 +40,7 @@ CREATE TABLE auth.refresh_tokens (
 --  END Refresh Tokens Table
 
 -- Email Verification Logic Tables
+-- Verification tokens are used for when someone has signed up
 CREATE TABLE auth.verification_tokens (
     id UUID PRIMARY KEY DEFAULT uuidv7(), 
     user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,

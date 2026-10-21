@@ -101,7 +101,7 @@ The database comes pre-seeded from [`init.sql`](init-db/init.sql) with ready-to-
 - [x] PostgREST schema and Docker Compose setup.
 - [x] Chi router initialization and base middleware stack.
 - [x] Initial registration and verification controller logic.
-- [ ] debug why `auth.email_verification_codes` is not initalizing in the db correctly
+- [ ] debug why `auth.email_verification_codes` is not initalizing in the db correctly (I think need to impliment Verification Code CRUD methods in `init.db` file)
 - [ ] Connect `HashPassword` directly to `CreateUser` in registration flow.
 - [ ] Complete `LoginController` password verification against stored bcrypt hashes.
 - [ ] Finish token rotation logic in `RefreshTokenController`.

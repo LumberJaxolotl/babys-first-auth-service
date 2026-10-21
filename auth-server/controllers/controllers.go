@@ -87,7 +87,10 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 	
 	email := r.Form.Get("email")
 	emailVerificationCode := r.Form.Get("email_verification_code")
+	
+	// 
 
+	
 	dbRetrievedToken, err := dbhelpers.GetEmailVerificationToken(email)
 	if err != nil {
 		http.Error(w, "Failed to fetch token from database", 500)

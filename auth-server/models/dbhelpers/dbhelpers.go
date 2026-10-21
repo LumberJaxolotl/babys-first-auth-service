@@ -147,7 +147,8 @@ func SetUserToEmailVerified(userId string){
 		SET is_email_verified = TRUE
 		WHERE user_id = $1;
 	`, userId)
-	
+	// todo add sql command to delete 
+
     tx.Commit()
 }
 
@@ -165,3 +166,10 @@ func StoreVerificationToken(userId string, tokenStr string) {
     tx.Commit()
 }
 // --------------------- END Verification Token CRUD ------------------------ 
+
+
+// --------------------- Verification Code CRUD ------------------------ 
+
+// TODO Impliment
+
+// --------------------- END Verification Code CRUD ------------------------ 
