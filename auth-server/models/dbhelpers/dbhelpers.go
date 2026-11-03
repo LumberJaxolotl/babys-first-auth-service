@@ -2,9 +2,11 @@ package dbhelpers
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -140,6 +142,8 @@ func GetEmailVerificationToken(email string)(string, error){
 	return tokenStr.TokenHash, nil 
 }
 
+// sets user as verified, 
+// deletes associated user verification token and verification code, 
 func SetUserToEmailVerified(userId string){
 	tx := db.MustBegin()
     tx.MustExec(`
@@ -148,7 +152,7 @@ func SetUserToEmailVerified(userId string){
 		WHERE user_id = $1;
 	`, userId)
 	// todo add sql command to delete 
-
+	
     tx.Commit()
 }
 
@@ -170,6 +174,41 @@ func StoreVerificationToken(userId string, tokenStr string) {
 
 // --------------------- Verification Code CRUD ------------------------ 
 
+
+var emailVerificationCode int
 // TODO Impliment
+func IsCorrectEmailVerificationCode(email string, code string) (bool, error){
+	codeFromUser, convertionErr := strconv.Atoi(code)
+	if convertionErr != nil {
+		return false, convertionErr
+	}
+
+	err := db.Get(&emailVerificationCode,`
+		SELECT evc.email_verification_code  
+		FROM auth.users u
+		LEFT JOIN auth.email_verification_codes evc
+			ON u.id = evc.user_id 
+		WHERE u.email = '$1';
+	`);
+	if err != nil {
+		if err == sql.ErrNoRows {
+        	// Handle the "Not Found" case specifically
+        	fmt.Println("No Verification Token matched email passed")
+        	return false, nil
+    	}
+		return false, err
+	}
+
+	if codeFromUser != emailVerificationCode{
+        return false, errors.New("No Verification Token matched email passed")
+	}
+	
+	return true, nil
+}
+
+func StoreVerificationCode() error {
+	// Todo impliment	
+	return nil
+}
 
 // --------------------- END Verification Code CRUD ------------------------ 

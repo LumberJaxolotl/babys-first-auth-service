@@ -43,6 +43,10 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 	_, verificationTokenValue, _ := lib.GetUserVerificationToken(userId)
 
 	dbhelpers.StoreVerificationToken(userId, verificationTokenValue)
+	
+	// Todo Finish Implimenting
+	// verificationCode := rand.IntN(9) + rand.IntN(9) + rand.IntN(9) + rand.IntN(9) + rand.IntN(9)  
+	// dbhelpers.StoreEmailVerificationCode(userId, verificationCode)
 
 	cookie1 := &http.Cookie{
 		Name:     "verification_token",
@@ -85,12 +89,21 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
         return
     }
 	
+	
+	
+	
+
+
+	//Checks that verification code is correct and hasn't expired
 	email := r.Form.Get("email")
 	emailVerificationCode := r.Form.Get("email_verification_code")
-	
-	// 
+	isMatch, err := 
+		dbhelpers.IsCorrectEmailVerificationCode(email, emailVerificationCode);
+	if isMatch != false || err != nil {
+		http.Error(w, "Failed to fetch token from database", 500)
+		return
+	}
 
-	
 	dbRetrievedToken, err := dbhelpers.GetEmailVerificationToken(email)
 	if err != nil {
 		http.Error(w, "Failed to fetch token from database", 500)
@@ -101,11 +114,11 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	requestVerificationToken := r.Form.Get("verification_token")
 	doTokensMatch, err := lib.DoTokensMatch(
-		emailVerificationCode, 
+		requestVerificationToken,
 		dbRetrievedToken, 
-		string(lib.VERIFICATION_TOKEN_SIGNING_SECRET),
-	)
+		string(lib.VERIFICATION_TOKEN_SIGNING_SECRET))
 	// TODO fetch user id from db after verifying stored verification token
 	if err != nil {
 		http.Error(w, "Error Verifying Email Verification Token", http.StatusBadRequest)
@@ -145,6 +158,9 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie2)
 
 	w.Write([]byte("Hi, Logged in user"))
+	w.Write([]byte("access token: " + accessTokenValue))
+	w.Write([]byte("refresh token: " + refreshTokenValue))
+	w.Write([]byte("still test that the response headers have these values too"))
 }
 
 // For testing reference
