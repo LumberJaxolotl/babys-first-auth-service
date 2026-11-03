@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/LumberJaxolotl/babys-first-auth-service/models/lib"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -46,52 +48,7 @@ func getDB()*sqlx.DB{
 
 // ---------------------- END Postgres Boilerplate -----------------
 
-// --------------------- Refresh Token CRUD ------------------------ 
 
-type RefreshToken struct {
-	ID        string `db:"id"`
-	user_id   string
-	TokenHash string `db:"token_hash"`
-}
-
-func StoreRefreshToken(userId string, tokenStr string) {
-	
-	// calculating expires_at value
-	const tokenExpiresIn = time.Hour * 24 * 30 
-	expiresAt := time.Now().Add(tokenExpiresIn).Format(time.RFC3339)  
-    tx := db.MustBegin()
-	
-	tx.MustExec(`
-		INSERT INTO auth.refresh_tokens 
-		(user_id, token_hash, expires_at) 
-		VALUES ($1, $2, $3);
-	`, userId, tokenStr, expiresAt)
-
-    tx.Commit()
-}
-
-func GetRefreshToken(tokenStr string) (RefreshToken, error) {
-	// TODO validate this is the right method + sql code
-	
-
-	token := RefreshToken{}
-	err := db.Get(&token, `
-		SELECT id, user_id, token_hash
-		FROM auth.refresh_tokens
-		WHERE
-			user_id = $1
-			AND
-			token_hash = $2
-	`, tokenStr)
-	if err != nil {
-		log.Println("Token validation failed:", err)
-		return RefreshToken{}, err
-	}
-
-	return token, nil
-}
-
-// --------------------- END Refresh Token CRUD ------------------------ 
 
 // --------------------- Create User ------------------------ 
 func CreateUser(email string, password string, fullName string)(string, error){
@@ -130,6 +87,7 @@ func GetEmailVerificationToken(email string)(string, error){
 		LEFT JOIN auth.users
 			ON auth.users.id = auth.verification_tokens.user_id
 		WHERE auth.users.email = 'alex.rivera@example.com';`)
+	
 	if err != nil {
 		if err == sql.ErrNoRows {
         	// Handle the "Not Found" case specifically
@@ -154,11 +112,9 @@ func SetUserToEmailVerified(userId string){
     tx.Commit()
 }
 
-func StoreVerificationToken(userId string, tokenStr string) {
+func StoreVerificationToken(userId string, verificationToken *jwt.Token) {
 	// calculating expires_at value
-	const tokenExpiresIn = time.Minute * 15 
-	expiresAt := time.Now().Add(tokenExpiresIn) 
-    tx := db.MustBegin()
+	tx := db.MustBegin()
     // takes the time to clear out any expired tokens so they  
 	// dont fill the db
 	tx.MustExec(`
@@ -166,13 +122,24 @@ func StoreVerificationToken(userId string, tokenStr string) {
     	WHERE user_id = $1 AND expires_at < $2
 	`, userId, time.Now())
 	
+
+	signingSecret := lib.TOKEN_SIGNING_SECRETS["verification"]
+	tokenHash, err := verificationToken.SignedString(signingSecret)
+	if err != nil {
+		log.Fatal("Error Signing Verification Token")
+	}
+
+	expiresAt, err :=  verificationToken.Claims.GetExpirationTime()
+
 	tx.MustExec(`
 			INSERT INTO auth.verification_tokens 
 				(user_id, token_hash, expires_at) 
 			VALUES ($1, $2, $3)
-	`, userId, tokenStr, expiresAt)
+	`, userId, tokenHash, expiresAt.Time)
     tx.Commit()
 }
+
+
 // --------------------- END Verification Token CRUD ------------------------ 
 
 
@@ -216,3 +183,15 @@ func StoreVerificationCode() error {
 }
 
 // --------------------- END Verification Code CRUD ------------------------ 
+
+// --------------------- Refresh Token CRUD ------------------------ 
+
+func GenerateRefreshToken(tokenStr string) (*jwt.Token, error) {
+	return nil, nil
+}
+
+func StoreRefreshToken(userId string, token *jwt.Token) {
+	
+}
+
+// --------------------- END Refresh Token CRUD ------------------------ 

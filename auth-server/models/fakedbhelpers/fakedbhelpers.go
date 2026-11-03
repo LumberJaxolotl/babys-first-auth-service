@@ -11,6 +11,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+
+
 func init() {
 	
 	
@@ -31,19 +33,19 @@ func SeedTokens(){
 	// changing 
 	tokenTypesToBeSeeded := []lib.TokenType{"verification"}
 	if slices.Contains(tokenTypesToBeSeeded, "verification") {
-		user1Token, err := lib.GenerateAuthToken(userIds[1], "verification", time.Minute * 10 )
+		user1Token, _, err := lib.GenerateAuthToken(userIds[1], "verification", time.Minute * 10 )
 		if err != nil {
 			log.Fatal(err)
 		}
 		dbhelpers.StoreVerificationToken(userIds[0], user1Token)
 		
-		user2Token, _ := lib.GenerateAuthToken(userIds[1], "verification", time.Minute * 10 )
+		user2Token, _, err := lib.GenerateAuthToken(userIds[1], "verification", time.Minute * 10 )
 		if err != nil {
 			log.Fatal(err)
 		}
 		dbhelpers.StoreRefreshToken(userIds[1], user2Token)
 		
-		user3Token, _ := lib.GenerateAuthToken(userIds[2], "verification", time.Hour * 24 * 30 )
+		user3Token, _, err := lib.GenerateAuthToken(userIds[2], "verification", time.Hour * 10 )
 		dbhelpers.StoreRefreshToken(userIds[2], user3Token)
 		if err != nil {
 			log.Fatal(err)
@@ -56,6 +58,18 @@ func SeedTokens(){
 	}
 
 	fmt.Println("DB has been Seeded with Auth Tokens")
+}
+
+func GenerateVerificationToken(userId string, fakeTokenHash string)*jwt.Token {
+	claims := jwt.MapClaims{
+		"user_id": userId,
+		"iat":     time.Now().Unix(), // Issued at
+		"exp":     time.Now().Add(time.Minute * 10).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	
+	return token
 }
 
 func StoreRefreshToken(token *jwt.Token) error {

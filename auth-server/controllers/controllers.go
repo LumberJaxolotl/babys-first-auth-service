@@ -40,9 +40,9 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO fetch user id from verification token claims
-	_, verificationTokenValue, _ := lib.GetUserVerificationToken(userId)
+	verificationToken,  _ := lib.GenerateUserVerificationToken(userId, lib.VERIFICATION_TOKEN_SIGNING_SECRET)
 
-	dbhelpers.StoreVerificationToken(userId, verificationTokenValue)
+	dbhelpers.StoreVerificationToken(userId, verificationToken)
 	
 	// Todo Finish Implimenting
 	// verificationCode := rand.IntN(9) + rand.IntN(9) + rand.IntN(9) + rand.IntN(9) + rand.IntN(9)  

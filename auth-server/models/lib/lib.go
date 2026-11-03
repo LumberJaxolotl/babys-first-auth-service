@@ -3,7 +3,6 @@ package lib
 import (
 	"crypto/sha256"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -68,7 +67,7 @@ func init() {
 }
 
 // ---- Verification Tokens | Generation and Verification Logic -----
-func GetUserVerificationToken(userId string) (*jwt.Token, string, error) {
+func GenerateUserVerificationToken(userId string) (*jwt.Token, error) {
 
 	claims := jwt.MapClaims{
 		"user_id": userId,
@@ -76,38 +75,7 @@ func GetUserVerificationToken(userId string) (*jwt.Token, string, error) {
 		"exp":     time.Now().Add(time.Minute * 15).Unix(), // times-out at
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenValue, err := token.SignedString(VERIFICATION_TOKEN_SIGNING_SECRET)
-
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("Error Signing Access Token")
-	}
-
-	return token, tokenValue, nil
-}
-
-// TODO gemini generated need to test
-func IsAccessTokenValid(tokenString string) (bool, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return ACCESS_TOKEN_SIGNING_SECRET, nil
-	})
-	if err != nil {
-		return false, err
-	}
-	if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return true, nil
-	}
-	return false, nil
-}
-
-// TODO need to impliment
-func isValidRefreshToken(recievedToken string, storedEncryptedToken string) (bool, error) {
-	return false, nil
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims), nil
 }
 
 // ---- END Access Tokens | Generation and Verification Logic -----
@@ -115,47 +83,18 @@ func isValidRefreshToken(recievedToken string, storedEncryptedToken string) (boo
 // ---- Access Tokens | Generation and Verification Logic -----
 
 // returns basic jwt string containing the user id
-func GetUserAccessToken(userId string) string {
-
-	claims := jwt.MapClaims{
-		"user_id": userId,
-		"iat":     time.Now().Unix(),                       // Issued at
-		"exp":     time.Now().Add(time.Minute * 10).Unix(), // Expires in 10 minutes
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenValue, err := token.SignedString(ACCESS_TOKEN_SIGNING_SECRET)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("Error Signing Access Token")
-	}
-
-	return tokenValue
+func GetUserAccessToken(userId string) *jwt.Token {
+	// TODO impliment
+	return nil	
 }
 
 // ---- Refresh Tokens | Generation and Verification Logic -----
 
 // Returns refresh token obj for storing in DB and
 // string value for use in cookie
-func GetUserRefreshToken(userId string) (*jwt.Token, string, error) {
-
-	claims := jwt.MapClaims{
-		"user_id": userId,
-		"iat":     time.Now().Unix(),                          // Issued at
-		"exp":     time.Now().Add(time.Hour * 24 * 60).Unix(), // Expires in 60 days
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenValue, err := token.SignedString(REFRESH_TOKEN_SIGNING_SECRET)
-
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("Error Signing Access Token")
-	}
-
-	return token, tokenValue, nil
+func GetUserRefreshToken(userId string) *jwt.Token {
+	// TODO impliment
+	return nil
 }
 
 // ------------------------- Misc. Helpers ------------------------------
@@ -171,7 +110,7 @@ func HashPassword(password string) (string, error) {
 
 
 
-func GenerateAuthToken(userId string, tokenType TokenType, validFor time.Duration) (string, error) {
+func GenerateAuthToken(userId string, tokenType TokenType, validFor time.Duration) (*jwt.Token, string, error) {
 
 	claims := jwt.MapClaims{
 		"user_id": userId,
@@ -183,14 +122,15 @@ func GenerateAuthToken(userId string, tokenType TokenType, validFor time.Duratio
 
 	signingSecret := TOKEN_SIGNING_SECRETS[tokenType]
 
-	tokenValue, err := token.SignedString(signingSecret)
+	signedTokenHash, err := token.SignedString(signingSecret)
 	if err != nil {
-		return "", errors.New("Error Signing " + string(tokenType) + " Token")
+		return nil, "", errors.New("Error Signing " + string(tokenType) + " Token")
 	}
 
-	return tokenValue, nil
+	return token, signedTokenHash, nil
 }
 
 func DoTokensMatch(token1 string, token2 string, signingSecret string) (bool, error) {
-	return false, nil
+	// TODO I think hashes need to be salted and hashed again before being put in the database
+	return token1 == token2, nil
 }
