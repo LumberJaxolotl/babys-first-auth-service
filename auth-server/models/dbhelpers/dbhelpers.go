@@ -57,17 +57,16 @@ type RefreshToken struct {
 func StoreRefreshToken(userId string, tokenStr string) {
 	
 	// calculating expires_at value
-	const tokenExpiresIn = time.Hour * 24 * 60 
+	const tokenExpiresIn = time.Hour * 24 * 30 
 	expiresAt := time.Now().Add(tokenExpiresIn).Format(time.RFC3339)  
     tx := db.MustBegin()
+	
 	tx.MustExec(`
 		INSERT INTO auth.refresh_tokens 
 		(user_id, token_hash, expires_at) 
-		VALUES ($1, $2, $3)
-		ON CONFLICT (user_id) DO UPDATE SET
-			token_hash = EXCLUDED.token_hash,
-			expires_at = EXCLUDED.expires_at
+		VALUES ($1, $2, $3);
 	`, userId, tokenStr, expiresAt)
+
     tx.Commit()
 }
 
@@ -152,21 +151,26 @@ func SetUserToEmailVerified(userId string){
 		WHERE user_id = $1;
 	`, userId)
 	// todo add sql command to delete 
-	
     tx.Commit()
 }
 
 func StoreVerificationToken(userId string, tokenStr string) {
 	// calculating expires_at value
 	const tokenExpiresIn = time.Minute * 15 
-	expiresAt := time.Now().Add(tokenExpiresIn).Format(time.RFC3339)  
+	expiresAt := time.Now().Add(tokenExpiresIn) 
     tx := db.MustBegin()
-    tx.MustExec(
-		`
+    // takes the time to clear out any expired tokens so they  
+	// dont fill the db
+	tx.MustExec(`
+    	DELETE FROM auth.verification_tokens 
+    	WHERE user_id = $1 AND expires_at < $2
+	`, userId, time.Now())
+	
+	tx.MustExec(`
 			INSERT INTO auth.verification_tokens 
-			(user_id, token_hash, expires_at) VALUES ($1, $2, $3)
-		`, 
-		userId, tokenStr, expiresAt)
+				(user_id, token_hash, expires_at) 
+			VALUES ($1, $2, $3)
+	`, userId, tokenStr, expiresAt)
     tx.Commit()
 }
 // --------------------- END Verification Token CRUD ------------------------ 

@@ -2,6 +2,7 @@ package lib
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -15,9 +16,25 @@ import (
 
 // TODO split file into JWTHELPERS and lib.go
 
+
+
 var VERIFICATION_TOKEN_SIGNING_SECRET []byte
 var ACCESS_TOKEN_SIGNING_SECRET []byte
 var REFRESH_TOKEN_SIGNING_SECRET []byte
+
+// idomatic way to declare enums
+type TokenType string
+const (
+	TokenTypeVerification TokenType = "email_verification"
+	TokenTypeRefresh      TokenType = "refresh"
+	TokenTypeAccess       TokenType = "access"
+	Token
+)
+
+var TOKEN_SIGNING_SECRETS map[TokenType][]byte
+
+
+
 
 func init() {
 	// Loads the .env file and initializes the signing secrets as package-level variables
@@ -25,25 +42,30 @@ func init() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	
+
 	verificationTokenSigningSecret := os.Getenv("VERIFICATION_TOKEN_SIGNING_SECRET")
 	accessTokenSigningSecret := os.Getenv("ACCESS_TOKEN_SIGNING_SECRET")
 	refreshTokenSigningSecret := os.Getenv("REFRESH_TOKEN_SIGNING_SECRET")
 
 	if verificationTokenSigningSecret == "" {
 		log.Fatal("Enviroment variable 'VERIFICATION_TOKEN_SIGNING_SECRET' could not be found")
-	}else if accessTokenSigningSecret == "" {
+	} else if accessTokenSigningSecret == "" {
 		log.Fatal("Enviroment variable 'ACCESS_TOKEN_SIGNING_SECRET' could not be found")
-	}else if refreshTokenSigningSecret == "" {
+	} else if refreshTokenSigningSecret == "" {
 		log.Fatal("Enviroment variable 'REFRESH_TOKEN_SIGNING_SECRET' could not be found")
 	}
 
 	VERIFICATION_TOKEN_SIGNING_SECRET = []byte(verificationTokenSigningSecret)
 	ACCESS_TOKEN_SIGNING_SECRET = []byte(accessTokenSigningSecret)
 	REFRESH_TOKEN_SIGNING_SECRET = []byte(refreshTokenSigningSecret)
-	
-}
 
+	// for convenience later in testing :)
+	TOKEN_SIGNING_SECRETS = map[TokenType][]byte{
+		"verification": VERIFICATION_TOKEN_SIGNING_SECRET,
+		"access": ACCESS_TOKEN_SIGNING_SECRET,
+		"refresh": REFRESH_TOKEN_SIGNING_SECRET,
+	}
+}
 
 // ---- Verification Tokens | Generation and Verification Logic -----
 func GetUserVerificationToken(userId string) (*jwt.Token, string, error) {
@@ -57,7 +79,6 @@ func GetUserVerificationToken(userId string) (*jwt.Token, string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	tokenValue, err := token.SignedString(VERIFICATION_TOKEN_SIGNING_SECRET)
-
 
 	if err != nil {
 		fmt.Println(err)
@@ -99,7 +120,7 @@ func GetUserAccessToken(userId string) string {
 	claims := jwt.MapClaims{
 		"user_id": userId,
 		"iat":     time.Now().Unix(),                       // Issued at
-		"exp":     time.Now().Add(time.Minute * 15).Unix(), // Expires in 15 minutes
+		"exp":     time.Now().Add(time.Minute * 10).Unix(), // Expires in 10 minutes
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -112,8 +133,8 @@ func GetUserAccessToken(userId string) string {
 
 	return tokenValue
 }
-// ---- Refresh Tokens | Generation and Verification Logic -----
 
+// ---- Refresh Tokens | Generation and Verification Logic -----
 
 // Returns refresh token obj for storing in DB and
 // string value for use in cookie
@@ -121,14 +142,13 @@ func GetUserRefreshToken(userId string) (*jwt.Token, string, error) {
 
 	claims := jwt.MapClaims{
 		"user_id": userId,
-		"iat":     time.Now().Unix(),                       // Issued at
+		"iat":     time.Now().Unix(),                          // Issued at
 		"exp":     time.Now().Add(time.Hour * 24 * 60).Unix(), // Expires in 60 days
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	tokenValue, err := token.SignedString(REFRESH_TOKEN_SIGNING_SECRET)
-
 
 	if err != nil {
 		fmt.Println(err)
@@ -140,7 +160,7 @@ func GetUserRefreshToken(userId string) (*jwt.Token, string, error) {
 
 // ------------------------- Misc. Helpers ------------------------------
 
-func HashPassword(password string)(string, error){
+func HashPassword(password string) (string, error) {
 	hash := sha256.Sum256([]byte(password))
 	bcryptHash, err := bcrypt.GenerateFromPassword(hash[:], bcrypt.DefaultCost)
 	if err != nil {
@@ -149,9 +169,28 @@ func HashPassword(password string)(string, error){
 	return string(bcryptHash), nil
 }
 
-func DoTokensMatch(token1 string, token2 string, signingSecret string)(bool, error){
-	
-	return false, nil
+
+
+func GenerateAuthToken(userId string, tokenType TokenType, validFor time.Duration) (string, error) {
+
+	claims := jwt.MapClaims{
+		"user_id": userId,
+		"iat":     time.Now().Unix(), // Issued at
+		"exp":     time.Now().Add(time.Minute * validFor).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	signingSecret := TOKEN_SIGNING_SECRETS[tokenType]
+
+	tokenValue, err := token.SignedString(signingSecret)
+	if err != nil {
+		return "", errors.New("Error Signing " + string(tokenType) + " Token")
+	}
+
+	return tokenValue, nil
 }
 
-
+func DoTokensMatch(token1 string, token2 string, signingSecret string) (bool, error) {
+	return false, nil
+}

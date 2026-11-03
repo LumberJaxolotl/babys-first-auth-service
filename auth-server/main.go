@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/LumberJaxolotl/babys-first-auth-service/controllers"
+	"github.com/LumberJaxolotl/babys-first-auth-service/models/fakedbhelpers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -48,6 +49,10 @@ func main() {
 		r.Get("/me", controllers.GetMeController)
 
 	})
+
+	// For Testing
+	fakedbhelpers.SeedTokens()
+	
 
 	fmt.Println("Auth server running on port 443")
 	http.ListenAndServe(":443", r)

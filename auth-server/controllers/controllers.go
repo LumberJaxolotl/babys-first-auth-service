@@ -89,10 +89,6 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
         return
     }
 	
-	
-	
-	
-
 
 	//Checks that verification code is correct and hasn't expired
 	email := r.Form.Get("email")
@@ -100,7 +96,7 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 	isMatch, err := 
 		dbhelpers.IsCorrectEmailVerificationCode(email, emailVerificationCode);
 	if isMatch != false || err != nil {
-		http.Error(w, "Failed to fetch token from database", 500)
+		http.Error(w, "Email verification code incorrect", 400)
 		return
 	}
 
@@ -143,7 +139,7 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 	// END ACCESS TOKEN COOKIE
 
 	// TODO store refresh token in db
-	refreshToken, refreshTokenValue, _ := lib.GetUserRefreshToken("0")
+	refreshToken, refreshTokenValue, _ := lib.GetUserRefreshToken("")
 	fakedbhelpers.StoreRefreshToken(refreshToken)
 
 	cookie2 := &http.Cookie{
@@ -161,6 +157,8 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("access token: " + accessTokenValue))
 	w.Write([]byte("refresh token: " + refreshTokenValue))
 	w.Write([]byte("still test that the response headers have these values too"))
+
+	// Todo: redirect to "email verified" page
 }
 
 // For testing reference
@@ -176,6 +174,7 @@ var UNHASHED_PASSWORDS = []string{
 
 func LoginController(w http.ResponseWriter, r *http.Request) {
 	// TODO if both access and refresh tokens, redirect to homepage
+
 }
 func RefreshTokenController(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hi"))
