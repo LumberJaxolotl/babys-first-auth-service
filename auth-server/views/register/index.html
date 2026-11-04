@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>Register | Site Name</title>
+
+    <!-- Basic SEO -->
+
+    <!-- Description: Shown as the grey preview text under your page title in Google results.
+         Aim for 140–160 chars — long enough to be useful, short enough not to be cut off.
+         Lead with the key benefit or topic, write for humans (not keyword lists), and end
+         with a soft CTA if natural. Google may still rewrite it, but a good one is used most of the time. -->
+    <meta name="description"
+        content="A lightweight HTML5 boilerplate with Alpine.js reactivity and Tailwind utility classes — set up once, then spin up fast, SEO-ready websites in minutes.">
+
+    <!-- Canonical URL: Tells search engines which URL is the definitive version of this page.
+         Without it, Google may treat http vs https, www vs non-www, trailing slashes, and
+         query strings as separate duplicate pages — splitting your ranking signals across all of them. -->
+    <link rel="canonical" href="https://example.com/register/">
+
+    <!-- Robots: Explicitly opts this page into indexing (index) and link-following (follow).
+         max-image-preview:large — allows Google to use a full-size image in Discover / SERP cards
+                                   instead of a small thumbnail; significantly boosts click-through rate.
+         max-snippet:-1          — removes Google's character cap on the preview text shown in results.
+         max-video-preview:-1    — removes the time cap on inline video clip previews in results. -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.svg">
+    <link rel="favicon" href="favicon.svg">
+
+    <!-- OpenGraph Properties: Controls how this page appears when shared on Facebook, LinkedIn,
+         Discord, Slack, iMessage, and anywhere else that reads OG tags. Without these, platforms
+         will guess — usually picking the wrong image and a truncated title.
+         OG object types: website | music.song | music.album | video.movie | video.episode | article | book | profile -->
+    <meta property="og:site_name" content="IMBD" />
+    <meta property="og:title" content="The Rock" />
+    <meta property="og:description" content="" />
+    <meta property="og:type" content="video.movie" />
+    <meta property="og:url" content="https://www.imdb.com/title/tt0117500/" />
+    <meta property="og:image" content="https://ia.media-imdb.com/images/rock.jpg" />
+
+    <!-- og:locale / og:locale:alternate: Tells scrapers the primary language of the page content
+         and any additional languages it's available in. Affects link previews on Facebook and
+         improves relevancy scoring for multi-language sites. Format is language_TERRITORY (e.g. en_US, fr_CA). -->
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="fr_CA" />
+    <!-- OpenGraph Properties END -->
+
+    <!-- Web App Manifest: Links to a JSON file that tells browsers how to treat this site when
+         added to a home screen (PWA). Defines the app name, icons, theme color, start URL, and
+         display mode (standalone removes the browser chrome). Required for the "Add to Home Screen"
+         prompt and an installable PWA experience on both Android and iOS. -->
+    <link rel="manifest" href="site.webmanifest">
+
+    <meta name="theme-color" content="#fafafa">
+
+    <link rel="stylesheet" href="css/index.css">
+
+    <!-- Choice of Twind or Tailwind + DaisyUI -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <!-- Twind is a more-performant version of the tailwind play CDN - https://twind.dev/ -->
+    <!-- <script src="https://cdn.twind.style" crossorigin></script> -->
+
+    <!-- alpine.js + alpine.js persistence plugin -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- alpine.js app boilerplate -->
+    <script defer>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('PageData', function () {
+                return ({
+                    // reactive values
+                    pageViews: 0,
+                    // sync reactive value with local storage
+                    // idk if this actually works tho. See https://alpinejs.dev/plugins/persist#using-persist-with-alpine-data. 
+                    clicksCounted: this.$persist(0),
+                    // Computed Properties
+                    get valuesPlusOne() {
+                        return this.pageViews + 1
+                    },
+                    // methods
+                    onButtonClick() {
+                        alert("Button clicked!")
+                    }
+                })
+            })
+        });
+    </script>
+
+
+</head>
+
+<!-- For flow from top of page -->
+<!-- <body class="grid justify-center min-h-screen px-5" x-data="PageData"> -->
+
+<body class="grid place-items-center min-h-screen px-5" x-data="PageData">
+
+    <!-- Add your site or application content here -->
+    <main class="max-w-fit md:max-w-96 h-fit grid grid-cols-1">
+        <h1 class="font-bold text-5xl mb-3" x-text="'Hello World!'">Hello World!</h1>
+        <p>This is HTML5 + Alpine.js + Tailwindcss + DaisyUI Boilerplate speaking.</p>
+    </main>
+
+    <!-- js if required -->
+    <script src="js/index.js"></script>
+
+    <!-- Structured Data (Schema.org / JSON-LD): Machine-readable metadata that search engines
+         parse to understand what this page *is*, not just what it says. Enables rich results in
+         Google (star ratings, FAQs, breadcrumbs, sitelinks, event cards, etc.) and powers the
+         knowledge graph. Placed at the end of the body so it never blocks rendering — the browser
+         reads it after painting the page. Update @id, url, name, and description per page. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://example.com/#website",
+          "url": "https://example.com/",
+          "name": "Site Name",
+          "description": "Your site description here",
+          "inLanguage": "en-US"
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://example.com/#webpage",
+          "url": "https://example.com/",
+          "name": "Page Title",
+          "isPartOf": { "@id": "https://example.com/#website" },
+          "description": "Page description here",
+          "inLanguage": "en-US"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Sample Content to put into sitemap.xml 
+    
+    <?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+        <url>
+            <loc>https://example.com/</loc>
+            <lastmod>2026-11-04</lastmod>
+            <changefreq>weekly</changefreq>
+            <priority>1.0</priority>
+        </url>
+            Subpage example: an About page. Priority 0.8 is typical for important but non-root pages.
+            changefreq hints to crawlers how often to re-check; it doesn't force a crawl schedule.
+            Values: always | hourly | daily | weekly | monthly | yearly | never 
+        <url>
+            <loc>https://example.com/about/</loc>
+            <lastmod>2026-11-04</lastmod>
+            <changefreq>monthly</changefreq>
+            <priority>0.8</priority>
+        </url>
+
+    </urlset>
+    
+    END Sample Content to put into sitemap.xml -->
+
+</body>
+
+</html>
