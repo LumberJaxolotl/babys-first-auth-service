@@ -12,10 +12,37 @@ The system pairs a custom Go-based authentication gateway with PostgREST sitting
 
 ```mermaid
 flowchart TD
-    Client["Client / Web Browser"] -->|"HTTP / Auth Requests (:443)"| GoAuth["Go Auth Server (Chi)"]
-    Client -.->|"RESTful DB Queries (:3000)"| PostgREST["PostgREST Service"]
-    GoAuth -->|"CRUD & Token Validation (:5432)"| Postgres[("PostgreSQL (app_db)")]
-    PostgREST -->|"Direct Schema Mapping"| Postgres
+    subgraph RegistrationVerification [Registration & Verification]
+        Reg[GET /register] --> PostReg[POST /register <br> Form Submit]
+        PostReg --> DBUnverified[(Create Unverified <br> Account in DB)]
+        DBUnverified --> GetVerify[Redirect to GET /verify-email <br> Ask for 6-digit code]
+        GetVerify --> PostVerify[POST /verify-email <br> Submit Code]
+        PostVerify --> CheckCode{Valid Code?}
+        CheckCode -- No --> VerifyError[Show Error <br> Try Again]
+        VerifyError --> PostVerify
+        CheckCode -- Yes --> DBVerified[(Mark User <br> Verified in DB)]
+        DBVerified --> ShowLogin[Show 'Click to Login' Page]
+    end
+
+    subgraph LoginLogout [Login & Logout]
+        PostLogin[POST /login <br> Submit Credentials] --> CheckCreds{Correct Password?}
+        CheckCreds -- No --> LoginError[Return Error]
+        CheckCreds -- Yes --> SetTokens[Set Access & Refresh <br> Token Cookies]
+        SetTokens --> Home[Redirect to Home Page]
+
+        PostLogout[POST /logout <br> Form Submit + CSRF] --> ClearTokens[Clear Cookies]
+        ClearTokens --> LoggedOut[Redirect to Logged Out Page]
+    end
+
+    subgraph ProtectedRoute [Protected SSR Route & Middleware Token Refresh]
+        GetMe[GET /me <br> Request with Cookies] --> CheckAccess{Access Token <br> Valid?}
+        CheckAccess -- Yes --> ServeMe[Serve Dashboard HTML]
+        CheckAccess -- No --> CheckRefresh{Refresh Token <br> Valid in DB?}
+        CheckRefresh -- Yes --> NewAccess[Generate New Access Token <br> & Add Set-Cookie Header]
+        NewAccess --> ServeMe
+        CheckRefresh -- No --> FailRefresh[Clear Cookies]
+        FailRefresh --> RedirectLogin[Redirect to Login Page]
+    end
 ```
 
 - **Go Auth Server (`:443`)**: Handles secure authentication operations (register, password hashing, JWT issue/refresh, verification codes, session invalidation).
