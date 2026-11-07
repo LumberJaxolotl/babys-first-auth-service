@@ -112,7 +112,7 @@ func SetUserToEmailVerified(userId string){
     tx.Commit()
 }
 
-func StoreVerificationToken(userId string, verificationToken *jwt.Token) {
+func StoreVerificationToken(userId string, verificationToken *jwt.Token) error {
 	// calculating expires_at value
 	tx := db.MustBegin()
     // takes the time to clear out any expired tokens so they  
@@ -123,13 +123,16 @@ func StoreVerificationToken(userId string, verificationToken *jwt.Token) {
 	`, userId, time.Now())
 	
 
-	signingSecret := lib.TOKEN_SIGNING_SECRETS["verification"]
+	signingSecret := lib.VERIFICATION_TOKEN_SIGNING_SECRET
 	tokenHash, err := verificationToken.SignedString(signingSecret)
 	if err != nil {
 		log.Fatal("Error Signing Verification Token")
 	}
 
 	expiresAt, err :=  verificationToken.Claims.GetExpirationTime()
+	if err != nil {
+		return err
+	}
 
 	tx.MustExec(`
 			INSERT INTO auth.verification_tokens 
@@ -137,6 +140,8 @@ func StoreVerificationToken(userId string, verificationToken *jwt.Token) {
 			VALUES ($1, $2, $3)
 	`, userId, tokenHash, expiresAt.Time)
     tx.Commit()
+
+	return nil
 }
 
 
@@ -177,8 +182,15 @@ func IsCorrectEmailVerificationCode(email string, code string) (bool, error){
 	return true, nil
 }
 
-func StoreVerificationCode() error {
-	// Todo impliment	
+func StoreEmailVerificationCode(userId string, verificationCode int) error {
+	tx := db.MustBegin()
+	tx.MustExec(`
+			INSERT INTO auth.verification_tokens 
+				(user_id, email_verification_code) 
+			VALUES ($1, $2)
+	`, userId, verificationCode)
+    tx.Commit()
+
 	return nil
 }
 

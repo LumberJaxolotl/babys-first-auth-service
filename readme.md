@@ -128,7 +128,9 @@ The database comes pre-seeded from [`init.sql`](init-db/init.sql) with ready-to-
 - [x] PostgREST schema and Docker Compose setup.
 - [x] Chi router initialization and base middleware stack.
 - [x] Initial registration and verification controller logic.
-- [ ] debug why `auth.email_verification_codes` is not initalizing in the db correctly (I think need to impliment Verification Code CRUD methods in `init.db` file)
+- [x] debug why `auth.email_verification_codes` is not initalizing in the db correctly (I think need to impliment Verification Code CRUD methods in `init.db` file)
+- [ ] Test `register` endpoint to see it attaches cookie
+- [ ] Continue work on `verify-email` endpoint in `/controllers.go`
 - [ ] Connect `HashPassword` directly to `CreateUser` in registration flow.
 - [ ] Complete `LoginController` password verification against stored bcrypt hashes.
 - [ ] Finish token rotation logic in `RefreshTokenController`.
@@ -139,15 +141,14 @@ The database comes pre-seeded from [`init.sql`](init-db/init.sql) with ready-to-
 - [ ] Implement `DoTokensMatch` and full verification token code comparison in `models/lib/`.
 - [ ] Implement `isValidRefreshToken` to check token expiration and database revocation status.
 - [ ] Split `lib.go` into `jwthelpers.go` and generic cryptographic utilities.
-- [ ] Implement CORS middleware policy for frontend origin requests.
-- [ ] Add rate-limiting on sensitive endpoints (`/login`, `/register`, `/verify-email`).
+
 
 ### Phase 3: Testing & Tooling
 - [ ] Add comprehensive end-to-end integration tests in `auth-server/tests/endpoints/`.
 - [ ] Add Thunder Client / Postman collection exports for all endpoints.
-- [ ] Expand test fixtures in `init-db/init.sql`.
+
 
 ### Phase 4: Frontend & User Experience
 - [ ] Build dedicated frontend pages for Login, Registration, and Email Verification.
 - [ ] Add dashboard / homepage with automatic redirection for unauthenticated sessions.
-- [ ] Implement toast notifications / validation error states for user forms.
+- [ ] Implement notifications / validation error states for user forms.

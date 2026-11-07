@@ -83,7 +83,7 @@ func GenerateUserVerificationToken(userId string) (*jwt.Token, error) {
 // ---- Access Tokens | Generation and Verification Logic -----
 
 // returns basic jwt string containing the user id
-func GetUserAccessToken(userId string) *jwt.Token {
+func GenerateUserAccessToken(userId string) *jwt.Token {
 	// TODO impliment
 	return nil	
 }
@@ -92,7 +92,7 @@ func GetUserAccessToken(userId string) *jwt.Token {
 
 // Returns refresh token obj for storing in DB and
 // string value for use in cookie
-func GetUserRefreshToken(userId string) *jwt.Token {
+func GenerateUserRefreshToken(userId string) *jwt.Token {
 	// TODO impliment
 	return nil
 }

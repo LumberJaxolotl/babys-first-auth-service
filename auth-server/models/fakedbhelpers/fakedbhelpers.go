@@ -72,6 +72,17 @@ func GenerateVerificationToken(userId string, fakeTokenHash string)*jwt.Token {
 	return token
 }
 
+// returns basic jwt string containing the user id
+func GenerateUserAccessToken(userId string) *jwt.Token {
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"userId": userId,
+		"sub":  "1234567890",
+		"name": "Faked Name",
+		"exp":  time.Now().Add(time.Hour * 24).Unix(),
+		"iat":  time.Now().Unix(),
+	})
+}
+
 func StoreRefreshToken(token *jwt.Token) error {
 	return nil
 }

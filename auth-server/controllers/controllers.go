@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand/v2"
 	"net/http"
 	"os"
 
@@ -15,24 +16,22 @@ import (
 func RegisterController(w http.ResponseWriter, r *http.Request) {
 
 	// quick check that all values are valid
-	
+
 	maxMemory := int64(32 << 10)
 	if err := r.ParseMultipartForm(maxMemory); err != nil {
-        http.Error(w, "Unable to parse form", http.StatusBadRequest)
-        return
-    }
+		http.Error(w, "Unable to parse form", http.StatusBadRequest)
+		return
+	}
 
 	fullName := r.Form.Get("name")
 	email := r.Form.Get("email")
 	password := r.Form.Get("password")
 
-	
 	fmt.Println("Form Values Recieved:")
 	fmt.Println("fullName: ", fullName)
 	fmt.Println("email: ", email)
 	fmt.Println("password: ", password)
 
-	
 	userId, err := dbhelpers.CreateUser(email, password, fullName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to create user in database: %v\n", err)
@@ -40,17 +39,26 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO fetch user id from verification token claims
-	verificationToken,  _ := lib.GenerateUserVerificationToken(userId, lib.VERIFICATION_TOKEN_SIGNING_SECRET)
+	verificationToken, _ := lib.GenerateUserVerificationToken(userId)
 
-	dbhelpers.StoreVerificationToken(userId, verificationToken)
-	
+	err = dbhelpers.StoreVerificationToken(userId, verificationToken)
+	// TODO change to http return code error
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Todo Finish Implimenting
-	// verificationCode := rand.IntN(9) + rand.IntN(9) + rand.IntN(9) + rand.IntN(9) + rand.IntN(9)  
-	// dbhelpers.StoreEmailVerificationCode(userId, verificationCode)
+	verificationCode := rand.IntN(9) + rand.IntN(9) + rand.IntN(9) + rand.IntN(9) + rand.IntN(9)
+	dbhelpers.StoreEmailVerificationCode(userId, verificationCode)
+
+	// Setting verification token while user is permitted to submit verification code sent to email
+	signingSecret := lib.TOKEN_SIGNING_SECRETS["verification"]
+	// TODO handle this with http error code
+	tokenValue, _ := verificationToken.SignedString(signingSecret)
 
 	cookie1 := &http.Cookie{
 		Name:     "verification_token",
-		Value:    verificationTokenValue,
+		Value:    tokenValue,
 		Path:     "/",  // For whole-site coverage
 		HttpOnly: true, // Prevents JavaScript access (XSS protection)
 		Secure:   true, // Ensures cookie is sent over HTTPS only
@@ -64,20 +72,7 @@ func RegisterController(w http.ResponseWriter, r *http.Request) {
 	// learn more about process of email token verification
 	// https://gemini.google.com/app/5135f941d0b938af
 
-	w.Write([]byte(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Email Verification</title>
-</head>
-<body>
-    <form action="/verify-email" method="POST">
-        <label for="code">Verification Code:</label>
-        <input type="text" id="code" name="email_verification_code" required>
-        <button type="submit">Submit</button>
-    </form>
-</body>
-</html>`))
+	http.Redirect(w, r, "/auth/verify-email", http.StatusSeeOther)
 }
 
 func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
@@ -85,16 +80,15 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 	// Check Code Passed is valid
 	maxMemory := int64(32 << 10)
 	if err := r.ParseMultipartForm(maxMemory); err != nil {
-        http.Error(w, "Unable to parse form", http.StatusBadRequest)
-        return
-    }
-	
+		http.Error(w, "Unable to parse form", http.StatusBadRequest)
+		return
+	}
 
 	//Checks that verification code is correct and hasn't expired
 	email := r.Form.Get("email")
 	emailVerificationCode := r.Form.Get("email_verification_code")
-	isMatch, err := 
-		dbhelpers.IsCorrectEmailVerificationCode(email, emailVerificationCode);
+	isMatch, err :=
+		dbhelpers.IsCorrectEmailVerificationCode(email, emailVerificationCode)
 	if isMatch != false || err != nil {
 		http.Error(w, "Email verification code incorrect", 400)
 		return
@@ -113,7 +107,7 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 	requestVerificationToken := r.Form.Get("verification_token")
 	doTokensMatch, err := lib.DoTokensMatch(
 		requestVerificationToken,
-		dbRetrievedToken, 
+		dbRetrievedToken,
 		string(lib.VERIFICATION_TOKEN_SIGNING_SECRET))
 	// TODO fetch user id from db after verifying stored verification token
 	if err != nil {
@@ -123,7 +117,12 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid Email Verification Token Passed", http.StatusUnauthorized)
 	}
 
-	accessTokenValue := lib.GetUserAccessToken("safdsafdsafdsafdsafdsafs")
+	accessToken := lib.GenerateUserAccessToken("This is a fake userID")	
+	accessTokenValue, err := accessToken.SignedString([]byte{"fake signing key"}))
+	if err != nil {
+		http.Error(w, "Failed to create token", http.StatusInternalServerError)
+		return
+	}
 
 	cookie1 := &http.Cookie{
 		Name:     "access_token",
@@ -140,7 +139,10 @@ func VerifyEmailController(w http.ResponseWriter, r *http.Request) {
 
 	// TODO store refresh token in db
 	refreshToken, refreshTokenValue, _ := lib.GetUserRefreshToken("")
-	fakedbhelpers.StoreRefreshToken(refreshToken)
+	err := fakedbhelpers.StoreRefreshToken(refreshToken)
+	if err != nil {
+		return log.Fatalf(err)
+	}
 
 	cookie2 := &http.Cookie{
 		Name:     "refresh_token",
